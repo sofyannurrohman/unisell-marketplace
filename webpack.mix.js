@@ -17,4 +17,7 @@ mix
     require('postcss-import'),
     require('tailwindcss'),
     require('autoprefixer'),
-  ]);
+  ])
+  // please change this as your server port configuration
+  .browserSync('localhost:8000')
+  .disableSuccessNotifications()

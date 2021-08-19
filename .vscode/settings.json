@@ -3,4 +3,8 @@
     "source.fixAll": true
   },
   "editor.formatOnSave": true,
+  // extensions related
+  "bladeFormatter.format.indentSize": 2,
+  "bladeFormatter.format.wrapAttributes": "force-expand-multiline",
+  "bladeFormatter.format.wrapLineLength": 150,
 }
