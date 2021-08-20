@@ -1,8 +1,9 @@
-<x-layouts.auth>
+<x-layouts.auth x-data="signup">
   <form
     method="POST"
     action="{{ route('login') }}"
     class="!mt-2 flex flex-col space-y-4"
+    x-ref="registerForm"
   >
     @csrf
 
@@ -45,7 +46,7 @@
     </div>
 
     <!-- Password -->
-    <div class="mt-4">
+    <div>
       <x-label
         for="password"
         :value="__('Password')"
@@ -63,7 +64,7 @@
     </div>
 
     <!-- Confirm Password -->
-    <div class="mt-4">
+    <div>
       <x-label
         for="password_confirmation"
         :value="__('Konfirmasi password')"
@@ -79,10 +80,11 @@
       />
     </div>
 
+
     <div class="w-full pt-8">
       <x-button
-        type="submit"
-        class="w-full "
+        class="w-full"
+        @click="onSubmitRegister"
       >
         {{ __('Daftar') }}
       </x-button>
@@ -97,6 +99,7 @@
           id="terms_agreement"
           name="terms_agreement"
           type="checkbox"
+          required
           class="rounded border-gray-300 text-primary-100 shadow-sm focus:border-primary-70 focus:ring focus:ring-primary-50 focus:ring-opacity-50"
         >
         <span class="ml-2 text-sm text-gray-600">{!! __('Dengan mendaftar, saya menyetujui <b>Syarat dan Ketentuan</b> serta <b>Kebijakan Privasi</b>') !!}</span>
@@ -104,16 +107,27 @@
     </div>
   </form>
 
-  <x-screen-overlay>
-    <div
+  <x-screen-overlay x-show="isVerificationModalOpen">
+    <form
+      x-ref="verificationNumberForm"
       class="relative w-full h-full flex flex-col justify-center items-center"
-      x-init="console.log('asdad')"
+      @click.self="onOverlayClick"
     >
-      <div class="relative p-4 bg-white rounded-3xl shadow-lg flex flex-col items-center space-y-2.5">
+      <div
+        class="relative p-4 bg-white rounded-3xl shadow-lg flex flex-col items-center space-y-2.5"
+        x-ref="verificationModal"
+        x-show="isVerificationModalOpen"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform scale-90"
+        x-transition:enter-end="opacity-100 transform scale-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 transform scale-100"
+        x-transition:leave-end="opacity-0 transform scale-90"
+      >
         <div class="absolute top-0 right-0 m-4">
           <button
             class="rounded-full"
-            x-on:click.prevent="console.log"
+            @click="closeVerificationModal"
           >
             <span class="material-icons-round text-gray-300">close</span>
           </button>
@@ -131,66 +145,128 @@
               type="number"
               minLength="1"
               maxLength="1"
+              required
               class="hide-input-arrows w-1/4 text-lg text-center border-0 border-b border-gray-300 focus:border-primary-50 focus:ring-primary-70"
-              x-on:change="alert('asdad')"
+              @keydown="onKeyDown"
+              @keyup="onKeyUp"
             />
           @endfor
         </div>
 
-        <p class="text-sm text-gray-500">{{ __('Mohon tunggu dalam 28 detik untuk kirim ulang') }}</p>
+        <p
+          class="text-sm text-gray-500"
+          x-text="`{{ __('Mohon tunggu dalam ${verificationNumberRequestTimeRemaining} detik untuk kirim ulang') }}`"
+        ></p>
         <x-button
           type="submit"
           class="w-full max-w-xs"
+          x-ref="verificationNumberFormSubmitter"
         >
           {{ __('Verifikasi') }}
         </x-button>
       </div>
-    </div>
+      </div>
   </x-screen-overlay>
 
   <x-slot name="beforeHeadEnd">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
     <script
         defer
         src="https://unpkg.com/alpinejs@3.2.3/dist/cdn.min.js"
     ></script>
   </x-slot>
 
-  <x-slot name="beforeEnd">
-    <script defer>
-      // document.addEventListener('DOMContentLoaded', () => {
-      const onKeyDown = e => {
-        console.log(e)
-        // const key = e.which;
+  <x-slot name="beforeBodyEnd">
+    <script>
+      document.addEventListener('alpine:init', () => {
+        const tabKey = 9;
+        const numberKeys = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
+        const verificationNumberRequestInterval = 60;
 
-        // if (key === 9 || (key >= 48 && key <= 57)) {
-        //   return true;
-        // }
+        Alpine.data('signup', () => ({
+          isVerificationModalOpen: false,
+          verificationNumberRequestTimeRemaining: verificationNumberRequestInterval,
+          verificationNumberRequestCounter: undefined,
+          closeVerificationModal() {
+            this.isVerificationModalOpen = false;
+            this.onVerificationModalClose();
+          },
+          openVerificationModal() {
+            this.isVerificationModalOpen = true;
+            this.onVerificationModalOpen();
+          },
+          startCounter() {
+            this.stopCounter()
 
-        // e.preventDefault();
-        // return false;
-      }
+            this.verificationNumberRequestCounter = setInterval(() => {
+              if (--this.verificationNumberRequestTimeRemaining <= 0) {
+                this.stopCounter();
+              }
+            }, 1000);
+          },
+          stopCounter() {
+            clearInterval(this.verificationNumberRequestCounter);
+            this.onStopCounter();
+          },
+          onStopCounter() {
+            this.verificationNumberRequestTimeRemaining = verificationNumberRequestInterval;
+          },
+          onSubmitRegister() {
+            if (this.$refs.registerForm.reportValidity()) {
+              this.openVerificationModal();
+            }
+          },
+          onVerificationModalClose() {
+            //
+          },
+          onVerificationModalOpen() {
+            this.startCounter();
+          },
+          onOverlayClick() {
+            this.$refs.verificationModal.classList.add('animate__animated', 'animate__shakeX');
+          },
+          onKeyDown(e) {
+            e.currentTarget.value = e.currentTarget.value.slice(e.currentTarget.value.length - 1, e.currentTarget.value.length);
 
-      const onKeyUp = e => {
-        console.log(e);
-        // const key = e.which;
-        // const t = $(e.target);
-        // const sib = t.next('input');
+            return [tabKey, ...numberKeys].includes(e.which);
+          },
+          /** @param {KeyboardEvent} e */
+          onKeyUp(e) {
+            const pressedKey = e.which;
 
-        // if (key != 9 && (key < 48 || key > 57)) {
-        //   e.preventDefault();
-        //   return false;
-        // }
+            if (pressedKey === tabKey) {
+              return true;
+            } else if (!numberKeys.includes(pressedKey)) {
+              return false;
+            } else {
+              /** @type {(HTMLInputElement | null)} */
+              const nextInput = e.currentTarget.nextElementSibling;
 
-        // if (key === 9) {
-        //   return true;
-        // }
+              if (nextInput) {
+                nextInput.select();
+              } else {
+                const form = this.$refs.verificationNumberForm;
 
-        // if (!sib || !sib.length) {
-        //   sib = body.find('input').eq(0);
-        // }
-        // sib.select().focus();
-      }
-      // })
+                if (form.requestSubmit) {
+                  form.requestSubmit(this.$refs.verificationNumberFormSubmitter);
+                } else {
+                  form.submit();
+                }
+              }
+            }
+          },
+          init() {
+            this.$refs.verificationModal.addEventListener('animationend', () => {
+              this.$refs.verificationModal
+                .classList.remove('animate__animated', 'animate__shakeX');
+            });
+          }
+        }))
+
+      })
     </script>
   </x-slot>
 </x-layouts.auth>

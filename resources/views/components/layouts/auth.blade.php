@@ -55,10 +55,10 @@ $getTabColor = fn($toRouteName) => Route::currentRouteName() === $toRouteName ? 
           </a>
         </div>
 
-        <div
-          role="tabpanel"
-          class="py-6 flex flex-col space-y-8"
-        >
+        <div {{ $attributes->merge([
+    'role' => 'tabpanel',
+    'class' => 'py-6 flex flex-col space-y-8',
+]) }}>
           <div class="flex space-x-4">
             <button
               class="w-1/2 px-2 py-2.5 bg-white font-medium border border-greyscale-stroke rounded-full flex justify-center items-center space-x-3 transition-colors hover:bg-gray-50"
@@ -94,6 +94,10 @@ $getTabColor = fn($toRouteName) => Route::currentRouteName() === $toRouteName ? 
       </div>
     </section>
   </main>
+
+  <x-slot name="beforeHeadEnd">
+    {{ isset($beforeHeadEnd) ? $beforeHeadEnd : '' }}
+  </x-slot>
 
   <x-slot name="beforeBodyEnd">
     {{ isset($beforeBodyEnd) ? $beforeBodyEnd : '' }}
