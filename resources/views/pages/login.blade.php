@@ -20,8 +20,8 @@
         :value="old('email')"
         placeholder="your@email.com"
         required
-        class="block mt-1 w-full"
         autofocus
+        class="block mt-1 w-full"
       />
     </div>
 
@@ -53,7 +53,7 @@
           id="remember_me"
           name="remember"
           type="checkbox"
-          class="rounded border-gray-300 text-primary-100 shadow-sm focus:border-primary-30 focus:ring focus:ring-primary-20 focus:ring-opacity-50"
+          class="rounded border-gray-300 text-primary-100 shadow-sm focus:border-primary-70 focus:ring focus:ring-primary-50 focus:ring-opacity-50"
         >
         <span class="ml-2 text-sm text-gray-600">{{ __('Ingat saya') }}</span>
       </label>

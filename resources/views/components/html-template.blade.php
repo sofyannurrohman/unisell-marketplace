@@ -28,6 +28,10 @@
     href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
     rel="stylesheet"
   >
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+    rel="stylesheet"
+  >
 
   <!-- Styles -->
   <link
@@ -35,19 +39,18 @@
     href="{{ mix('css/app.css') }}"
   >
 
-  <!-- Scripts -->
-  <script
-    src="{{ mix('js/app.js') }}"
-    defer
-  ></script>
+  {{ isset($beforeHeadEnd) ? $beforeHeadEnd : '' }}
 </head>
 
 <body class="min-h-screen">
   {{ $slot }}
 
-  @env('local')
-  <script src="http://localhost:35729/livereload.js"></script>
-  @endenv
+  <script
+    src="{{ mix('js/app.js') }}"
+    defer
+  ></script>
+
+  {{ isset($beforeBodyEnd) ? $beforeBodyEnd : '' }}
 </body>
 
 </html>
