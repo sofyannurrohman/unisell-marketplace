@@ -7,25 +7,6 @@
   >
     @csrf
 
-    <!-- Name -->
-    <div>
-      <x-label
-        for="name"
-        :value="__('Nama')"
-      />
-
-      <x-input
-        id="name"
-        type="text"
-        name="name"
-        :placeholder="__('nama')"
-        :value="old('name')"
-        required
-        autofocus
-        class="block mt-1 w-full"
-      />
-    </div>
-
     <!-- Email Address -->
     <div>
       <x-label
@@ -81,7 +62,7 @@
     </div>
 
 
-    <div class="w-full pt-8">
+    <div class="w-full pt-6">
       <x-button
         class="w-full"
         @click="onSubmitRegister"
@@ -114,7 +95,7 @@
       @click.self="onOverlayClick"
     >
       <div
-        class="relative p-4 bg-white rounded-3xl shadow-lg flex flex-col items-center space-y-2.5"
+        class="relative p-8 bg-white rounded-3xl shadow-lg flex flex-col items-center space-y-2.5"
         x-ref="verificationModal"
         x-show="isVerificationModalOpen"
         x-transition:enter="transition ease-out duration-300"
@@ -129,36 +110,81 @@
             class="rounded-full"
             @click="closeVerificationModal"
           >
-            <span class="material-icons-round text-gray-300">close</span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 text-greyscale-placeholder rotate-45"
+            >
+              <path
+                d="M6 12H18"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M12 18V6"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </button>
         </div>
 
-        <span class="material-icons-round text-3xl">mail</span>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-10 h-10 text-primary-100"
+          >
+            <path
+              d="M17 3.5H7C4 3.5 2 5 2 8.5V15.5C2 19 4 20.5 7 20.5H17C20 20.5 22 19 22 15.5V8.5C22 5 20 3.5 17 3.5ZM17.47 9.59L14.34 12.09C13.68 12.62 12.84 12.88 12 12.88C11.16 12.88 10.31 12.62 9.66 12.09L6.53 9.59C6.21 9.33 6.16 8.85 6.41 8.53C6.67 8.21 7.14 8.15 7.46 8.41L10.59 10.91C11.35 11.52 12.64 11.52 13.4 10.91L16.53 8.41C16.85 8.15 17.33 8.2 17.58 8.53C17.84 8.85 17.79 9.33 17.47 9.59Z"
+              fill="currentColor"
+            />
+          </svg>
+        </div>
 
-        <h6 class="font-semibold text-md">{{ __('Masukkan kode verifikasi') }}</h6>
+        <h6 class="font-semibold text-lg text-greyscale-title">{{ __('Masukkan kode verifikasi') }}</h6>
 
-        <p class="text-sm text-center">{{ __('Kode verifikasi telah dikirim melalui sms ke 081329230845') }}</p>
+        <p class="text-sm text-greyscale-body text-center">{!! __('Kode verifikasi telah dikirim melalui <b class="font-medium">email ke your@email.com</b>') !!}</p>
+
+        <span
+          x-show="verificationNumberMsg"
+          x-text="verificationNumberMsg"
+          class="px-4 py-2 bg-greyscale-label text-sm rounded-full"
+          :class="{ 'text-error': verificationNumberMsg }"
+        ></span>
 
         <div class="w-full max-w-sm py-4 flex space-x-4">
           @for ($i = 0; $i < 4; $i++)
             <input
-              type="number"
               minLength="1"
               maxLength="1"
+              min="0"
+              max="9"
+              pattern="[0-9]{1}"
+              x-model="verificationNumber{{ $i }}"
               required
-              class="hide-input-arrows w-1/4 text-lg text-center border-0 border-b border-gray-300 focus:border-primary-50 focus:ring-primary-70"
+              class="verification-number-input"
+              :class="isVerificationNumberError && 'verification-number-input--error'"
               @keydown="onKeyDown"
               @keyup="onKeyUp"
+              @focus="$el.select()"
             />
           @endfor
         </div>
 
         <p
-          class="text-sm text-gray-500"
-          x-text="`{{ __('Mohon tunggu dalam ${verificationNumberRequestTimeRemaining} detik untuk kirim ulang') }}`"
+          class="text-sm text-greyscale-body"
+          x-html="`{{ __('Mohon tunggu dalam <b class="font-medium">${verificationNumberRequestTimeRemaining} detik</b> untuk kirim ulang') }}`"
         ></p>
+
         <x-button
           type="submit"
+          ::disabled="!isVerificationNumberValid"
           class="w-full max-w-xs"
           x-ref="verificationNumberFormSubmitter"
         >
@@ -187,16 +213,29 @@
         const verificationNumberRequestInterval = 60;
 
         Alpine.data('signup', () => ({
-          isVerificationModalOpen: false,
+          isVerificationModalOpen: true,
+          verificationNumber0: '-',
+          verificationNumber1: '-',
+          verificationNumber2: '-',
+          verificationNumber3: '-',
           verificationNumberRequestTimeRemaining: verificationNumberRequestInterval,
           verificationNumberRequestCounter: undefined,
+          verificationNumberMsg: 'Maaf, kode yang kamu masukkan salah :(',
+          verificationNumberMsgType: 'error',
+          isVerificationNumberError: true,
+          get isVerificationNumberValid() {
+            // concat the verification input
+            const verificationNumber =
+              `${this.verificationNumber0}${this.verificationNumber1}${this.verificationNumber2}${this.verificationNumber3}`;
+
+            // convert to number and check is it NaN? if no check the length
+            return !isNaN(Number(verificationNumber)) && (verificationNumber.length === 4);
+          },
           closeVerificationModal() {
             this.isVerificationModalOpen = false;
-            this.onVerificationModalClose();
           },
           openVerificationModal() {
             this.isVerificationModalOpen = true;
-            this.onVerificationModalOpen();
           },
           startCounter() {
             this.stopCounter()
@@ -209,9 +248,9 @@
           },
           stopCounter() {
             clearInterval(this.verificationNumberRequestCounter);
-            this.onStopCounter();
+            this.onCounterStop();
           },
-          onStopCounter() {
+          onCounterStop() {
             this.verificationNumberRequestTimeRemaining = verificationNumberRequestInterval;
           },
           onSubmitRegister() {
@@ -229,7 +268,7 @@
             this.$refs.verificationModal.classList.add('animate__animated', 'animate__shakeX');
           },
           onKeyDown(e) {
-            e.currentTarget.value = e.currentTarget.value.slice(e.currentTarget.value.length - 1, e.currentTarget.value.length);
+            e.currentTarget.value = '';
 
             return [tabKey, ...numberKeys].includes(e.which);
           },
@@ -246,15 +285,7 @@
               const nextInput = e.currentTarget.nextElementSibling;
 
               if (nextInput) {
-                nextInput.select();
-              } else {
-                const form = this.$refs.verificationNumberForm;
-
-                if (form.requestSubmit) {
-                  form.requestSubmit(this.$refs.verificationNumberFormSubmitter);
-                } else {
-                  form.submit();
-                }
+                nextInput.focus();
               }
             }
           },
@@ -262,6 +293,14 @@
             this.$refs.verificationModal.addEventListener('animationend', () => {
               this.$refs.verificationModal
                 .classList.remove('animate__animated', 'animate__shakeX');
+            });
+
+            Alpine.effect(() => {
+              if (this.isVerificationModalOpen) {
+                this.onVerificationModalOpen();
+              } else {
+                this.onVerificationModalClose();
+              }
             });
           }
         }))

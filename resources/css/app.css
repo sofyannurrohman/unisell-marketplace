@@ -2,11 +2,47 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-.hide-input-arrows::-webkit-outer-spin-button,
-.hide-input-arrows::-webkit-inner-spin-button {
+[x-cloak] {
+  @apply !hidden;
+}
+
+.btn {
+  @apply px-2 py-2.5 bg-primary-100 font-semibold text-white rounded-full shadow-sm inline-flex justify-center items-center transition-colors;
+}
+
+.btn:hover {
+  @apply bg-primary-90;
+}
+
+.btn[disabled],
+.btn.btn--disabled {
+  @apply cursor-not-allowed bg-gray-300;
+}
+
+.btn[disabled]:hover,
+.btn.btn--disabled:hover {
+  @apply bg-gray-300;
+}
+
+.verification-number-input {
+  @apply w-1/4 pt-1 pb-2 font-bold text-lg text-center outline-none border-0 border-b-2 border-gray-300 transition-colors;
+}
+
+.verification-number-input::-webkit-outer-spin-button,
+.verification-number-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
-[x-cloak] {
-  @apply !hidden;
+.verification-number-input:focus,
+.verification-number-input.verification-number-input--focus {
+  @apply border-primary-100 ring-primary-70;
+}
+
+.verification-number-input:valid,
+.verification-number-input.verification-number-input--valid {
+  @apply border-primary-100;
+}
+
+.verification-number-input.verification-number-input--error {
+  @apply border-error;
 }
